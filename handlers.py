@@ -7,9 +7,15 @@ from aiogram.types import (
     ContentType,
     Document,
 )
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
 
 
 router = Router()
+
+
+class Form(StatesGroup):
+    waiting_for_document = State()
 
 
 @router.message(CommandStart())
@@ -23,3 +29,4 @@ async def command_start_handler(message: Message) -> None:
         f"Hello, {html.bold(message.from_user.full_name)}!",
         reply_markup=keyboard,
     )
+
