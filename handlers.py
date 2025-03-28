@@ -39,3 +39,17 @@ async def handle_button(message: Message, state: FSMContext) -> None:
         "Файл должен включать в себя таблицу с полями: title - название, "
         "url - ссылка на сайт источник и xpath - путь к элементу с ценой."
     )
+
+
+@router.message(Form.waiting_for_document, F.document)
+async def handle_document(message: Message, state: FSMContext):
+    file_id = message.document.file_id
+    file = await message.bot.get_file(file_id=file_id)
+    file_path = file.file_path
+
+    downloaded_file = await message.bot.download_file(file_path)
+    with open(f"downloads/{message.document.file_name}", "wb") as new_file:
+        new_file.write(downloaded_file.read())
+
+    await message.answer(f"Документ {message.document.file_name} успешно загружен!")
+    await state.clear()
