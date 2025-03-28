@@ -5,11 +5,11 @@ import sys
 from os import getenv
 from dotenv import load_dotenv
 
-from aiogram import Bot, Dispatcher, html
+from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
-from aiogram.types import Message
+
+from handlers import router
 
 load_dotenv()
 
@@ -17,11 +17,7 @@ API_TOKEN = getenv("API_TOKEN")
 
 
 dp = Dispatcher()
-
-
-@dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    await message.answer(f"Hello, {html.bold(message.from_user.full_name)}!")
+dp.include_router(router=router)
 
 
 async def main() -> None:
