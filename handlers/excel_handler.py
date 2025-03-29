@@ -4,12 +4,14 @@ from aiogram.types import (
     Message,
     KeyboardButton,
     ReplyKeyboardMarkup,
-    ContentType,
-    Document,
 )
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from aiogram import F
+
+from tabulate import tabulate
+
+from utils.parse_table_data import parse_table_data
 
 router = Router()
 
@@ -21,17 +23,17 @@ class Form(StatesGroup):
 @router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     kb = [
-        [KeyboardButton(text="КНОПКА")],
+        [KeyboardButton(text="Прислать xls файл")],
     ]
     keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
     await message.answer(
-        f"Hello, {html.bold(message.from_user.full_name)}!",
+        f"Привет, {html.bold(message.from_user.full_name)}!",
         reply_markup=keyboard,
     )
 
 
-@router.message(F.text == "КНОПКА")
+@router.message(F.text == "Прислать xls файл")
 async def handle_button(message: Message, state: FSMContext) -> None:
     await state.set_state(Form.waiting_for_document)
     await message.answer(
@@ -51,5 +53,13 @@ async def handle_document(message: Message, state: FSMContext):
     with open(f"downloads/{message.document.file_name}", "wb") as new_file:
         new_file.write(downloaded_file.read())
 
-    await message.answer(f"Документ {message.document.file_name} успешно загружен!")
+    # await message.answer(f"Документ {message.document.file_name} успешно загружен!"
+
+    data = await parse_table_data(f"downloads/{message.document.file_name}")
+
+    table = tabulate(data, headers=["title", "url", "xpath"], tablefmt="plain")
+    await message.answer(
+        f"<b>Содержимое вашего документа:</b>\n\n<pre>{table}</pre>", parse_mode="HTML"
+    )
+
     await state.clear()
