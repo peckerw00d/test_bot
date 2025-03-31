@@ -9,9 +9,12 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from aiogram import F
 
+import aiosqlite
+
 from tabulate import tabulate
 
 from utils.parse_table_data import parse_table_data
+from db.repository import repo
 
 router = Router()
 
@@ -53,9 +56,13 @@ async def handle_document(message: Message, state: FSMContext):
     with open(f"downloads/{message.document.file_name}", "wb") as new_file:
         new_file.write(downloaded_file.read())
 
-    # await message.answer(f"Документ {message.document.file_name} успешно загружен!"
-
     data = await parse_table_data(f"downloads/{message.document.file_name}")
+
+    try:
+        await repo.add_data(data=data)
+
+    except aiosqlite.Error as err:
+        print(f"Возникла ошибка при загрузки данных в БД: {err}")
 
     table = tabulate(data, headers=["title", "url", "xpath"], tablefmt="plain")
     await message.answer(
