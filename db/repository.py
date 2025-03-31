@@ -1,6 +1,8 @@
 from typing import List, Tuple
 import aiosqlite
 
+from config import DB_PATH
+
 
 class Repository:
     def __init__(self, db_path: str):
@@ -25,4 +27,4 @@ class Repository:
             await conn.commit()
 
 
-repo = Repository("./sqlite/app.db")
+repo = Repository(DB_PATH)

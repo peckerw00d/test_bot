@@ -1,4 +1,4 @@
-__all__ = ("excel_parser", "average_price")
+__all__ = ("parse_excel_data", "average_price")
 
 from .price_calculator import average_price
-from .excel_parser import parse_table_data
+from .excel_parser import parse_excel_data

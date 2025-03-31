@@ -10,11 +10,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram import F
 
 import aiosqlite
-
 from tabulate import tabulate
 
 import utils
 from db.repository import repo
+from config import DOWNLOADS_DIR
 
 router = Router()
 
@@ -53,10 +53,10 @@ async def handle_document(message: Message, state: FSMContext):
     file_path = file.file_path
 
     downloaded_file = await message.bot.download_file(file_path)
-    with open(f"downloads/{message.document.file_name}", "wb") as new_file:
+    with open(f"{DOWNLOADS_DIR}/{message.document.file_name}", "wb") as new_file:
         new_file.write(downloaded_file.read())
 
-    data = await utils.excel_parser(f"downloads/{message.document.file_name}")
+    data = await utils.parse_excel_data(f"{DOWNLOADS_DIR}/{message.document.file_name}")
 
     try:
         await repo.add_data(data=data)
