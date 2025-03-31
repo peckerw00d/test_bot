@@ -13,7 +13,7 @@ import aiosqlite
 
 from tabulate import tabulate
 
-from utils.parse_table_data import parse_table_data
+import utils
 from db.repository import repo
 
 router = Router()
@@ -26,7 +26,7 @@ class Form(StatesGroup):
 @router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     kb = [
-        [KeyboardButton(text="Прислать xls файл")],
+        [KeyboardButton(text="Загрузить файл")],
     ]
     keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
@@ -36,7 +36,7 @@ async def command_start_handler(message: Message) -> None:
     )
 
 
-@router.message(F.text == "Прислать xls файл")
+@router.message(F.text == "Загрузить файл")
 async def handle_button(message: Message, state: FSMContext) -> None:
     await state.set_state(Form.waiting_for_document)
     await message.answer(
@@ -56,7 +56,7 @@ async def handle_document(message: Message, state: FSMContext):
     with open(f"downloads/{message.document.file_name}", "wb") as new_file:
         new_file.write(downloaded_file.read())
 
-    data = await parse_table_data(f"downloads/{message.document.file_name}")
+    data = await utils.excel_parser(f"downloads/{message.document.file_name}")
 
     try:
         await repo.add_data(data=data)
@@ -68,5 +68,6 @@ async def handle_document(message: Message, state: FSMContext):
     await message.answer(
         f"<b>Содержимое вашего документа:</b>\n\n<pre>{table}</pre>", parse_mode="HTML"
     )
+    await message.answer(f"Средняя цена всех товаров: {utils.average_price(data)}")
 
     await state.clear()
